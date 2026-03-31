@@ -1,22 +1,33 @@
 const mc = require('minecraft-protocol');
 const http = require('http');
 
+// giữ Railway sống
 http.createServer((req, res) => {
   res.end('Bot running');
 }).listen(process.env.PORT || 8080);
 
+let delay = 5000;
+
 function createBot() {
+  console.log('🚀 Đang kết nối...');
+
   const client = mc.createClient({
-    host: 'aechat.aternos.me',
-    port: 25565,
-    username: 'TenBot',
+    host: 'aechat.aternos.me', // đổi IP nếu cần
+    port: 37480,
+    username: 'Dream',
     version: false,
     auth: 'offline'
   });
 
   client.on('login', () => {
     console.log('✅ Đã vào server');
-    randomAction(client);
+
+    // chỉ chat rất ít (tránh bị detect)
+    setInterval(() => {
+      try {
+        client.write('chat', { message: 'hi' });
+      } catch {}
+    }, 180000); // 3 phút
   });
 
   client.on('kicked', (reason) => {
@@ -36,35 +47,9 @@ function createBot() {
 }
 
 function reconnect() {
-  setTimeout(createBot, 5000);
-}
-
-function randomAction(client) {
-  const delay = 20000 + Math.random() * 40000;
-
-  setTimeout(() => {
-    try {
-      const actions = ['swing', 'chat', 'nothing'];
-      const action = actions[Math.floor(Math.random() * actions.length)];
-
-      if (action === 'swing') {
-        client.write('arm_animation', { hand: 0 });
-        console.log('👋 vẫy tay');
-      }
-
-      if (action === 'chat') {
-        const msgs = ['hi', 't can ca sever', 'ok', 'nam', 'minh'];
-        const msg = msgs[Math.floor(Math.random() * msgs.length)];
-        client.write('chat', { message: msg });
-        console.log('💬 chat:', msg);
-      }
-
-    } catch (e) {
-      console.log('⚠️ lỗi action:', e.message);
-    }
-
-    randomAction(client);
-  }, delay);
+  console.log('⏳ Reconnect sau', delay / 1000, 'giây...');
+  setTimeout(createBot, delay);
+  delay = Math.min(delay + 3000, 60000);
 }
 
 createBot();
