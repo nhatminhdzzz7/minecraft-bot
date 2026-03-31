@@ -21,6 +21,15 @@ function createBot() {
 
   client.on('login', () => {
     console.log('✅ Đã vào server');
+    // vẫy tay
+setInterval(() => {
+  client.write('arm_animation', { hand: 0 });
+}, 30000);
+
+// chat nhẹ
+setInterval(() => {
+  client.write('chat', { message: '.' });
+}, 120000);
 
     // chỉ chat rất ít (tránh bị detect)
     setInterval(() => {
