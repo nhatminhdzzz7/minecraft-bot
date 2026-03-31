@@ -24,12 +24,7 @@ function createBot() {
   client.on('login', () => {
     console.log('✅ Bot đã vào server!');
 
-    // Delay để tránh anti-bot
-    setTimeout(() => {
-      try {
-        client.write('chat', { message: '/login matkhau' }); // đổi mật khẩu
-      } catch {}
-    }, 5000);
+  
 
     // Chat cực chậm (giống người thật)
     setInterval(() => {
