@@ -1,15 +1,20 @@
 const mc = require('minecraft-protocol');
 const http = require('http');
 
+const PORT = process.env.PORT || 8080;
+
+// Web server giữ Railway sống
 http.createServer((req, res) => {
-  res.end('Bot running!');
-}).listen(process.env.PORT || 8080);
+  res.end('Bot is running!');
+}).listen(PORT);
 
 let delay = 5000;
 
 function createBot() {
+  console.log('🚀 Đang tạo bot...');
+
   const client = mc.createClient({
-    host: 'aechat.aternos.me',
+    host: 'aechat.aternos.me', // đổi nếu cần
     port: 25565,
     username: 'TenBot_' + Math.floor(Math.random() * 9999),
     version: false,
@@ -19,45 +24,34 @@ function createBot() {
   client.on('login', () => {
     console.log('✅ Bot đã vào server!');
 
-    // Delay login tránh bị anti-bot
+    // Delay để tránh anti-bot
     setTimeout(() => {
-      client.write('chat', { message: '/login matkhau' });
-    }, 4000);
+      try {
+        client.write('chat', { message: '/login matkhau' }); // đổi mật khẩu
+      } catch {}
+    }, 5000);
 
-    // Di chuyển nhẹ (anti AFK)
+    // Chat cực chậm (giống người thật)
     setInterval(() => {
-      const x = (Math.random() - 0.5) * 0.2;
-      const z = (Math.random() - 0.5) * 0.2;
+      try {
+        const msgs = [
+          'hi',
+          'afk tí',
+          'lag v',
+          'ok',
+          'đang treo bot 😏'
+        ];
+        const msg = msgs[Math.floor(Math.random() * msgs.length)];
+        client.write('chat', { message: msg });
+      } catch {}
+    }, 120000 + Math.random() * 60000); // 2-3 phút
 
-      client.write('position', {
-        x: client.entity.position.x + x,
-        y: client.entity.position.y,
-        z: client.entity.position.z + z,
-        onGround: true
-      });
-    }, 10000);
-
-    // Xoay đầu random (giống người thật)
+    // Ping nhẹ để giữ kết nối (an toàn hơn movement)
     setInterval(() => {
-      client.write('look', {
-        yaw: Math.random() * 360,
-        pitch: (Math.random() * 180) - 90,
-        onGround: true
-      });
-    }, 8000);
-
-    // Chat random (chậm, không spam)
-    setInterval(() => {
-      const msgs = [
-        'hello',
-        'lag v',
-        'afk tí',
-        'ok',
-        'ai chơi ko'
-      ];
-      const msg = msgs[Math.floor(Math.random() * msgs.length)];
-      client.write('chat', { message: msg });
-    }, 90000 + Math.random() * 60000); // 90–150s
+      try {
+        client.write('keep_alive', { keepAliveId: Date.now() });
+      } catch {}
+    }, 20000);
   });
 
   client.on('kicked', (reason) => {
@@ -77,6 +71,7 @@ function createBot() {
 }
 
 function reconnect() {
+  console.log('⏳ Đang reconnect sau', delay / 1000, 'giây...');
   setTimeout(createBot, delay);
   delay = Math.min(delay + 3000, 60000);
 }
