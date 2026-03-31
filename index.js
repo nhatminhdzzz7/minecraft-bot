@@ -2,17 +2,16 @@ const mc = require('minecraft-protocol');
 const http = require('http');
 
 http.createServer((req, res) => {
-  res.write('Bot running!');
-  res.end();
-}).listen(8080);
+  res.end('Bot running!');
+}).listen(process.env.PORT || 8080);
 
 let delay = 5000;
 
 function createBot() {
   const client = mc.createClient({
     host: 'aechat.aternos.me',
-    port: 37480,
-    username: 'TenBot_' + Math.floor(Math.random() * 1000), // random tên
+    port: 25565,
+    username: 'TenBot_' + Math.floor(Math.random() * 9999),
     version: false,
     auth: 'offline'
   });
@@ -20,26 +19,45 @@ function createBot() {
   client.on('login', () => {
     console.log('✅ Bot đã vào server!');
 
-    // Delay để tránh bị nghi spam
+    // Delay login tránh bị anti-bot
     setTimeout(() => {
       client.write('chat', { message: '/login matkhau' });
-    }, 5000);
+    }, 4000);
 
-    // Chat random như người thật
+    // Di chuyển nhẹ (anti AFK)
     setInterval(() => {
-      const msgs = ['hello', 'hi', 'afk xíu', 'server lag v', 'ok'];
+      const x = (Math.random() - 0.5) * 0.2;
+      const z = (Math.random() - 0.5) * 0.2;
+
+      client.write('position', {
+        x: client.entity.position.x + x,
+        y: client.entity.position.y,
+        z: client.entity.position.z + z,
+        onGround: true
+      });
+    }, 10000);
+
+    // Xoay đầu random (giống người thật)
+    setInterval(() => {
+      client.write('look', {
+        yaw: Math.random() * 360,
+        pitch: (Math.random() * 180) - 90,
+        onGround: true
+      });
+    }, 8000);
+
+    // Chat random (chậm, không spam)
+    setInterval(() => {
+      const msgs = [
+        'hello',
+        'lag v',
+        'afk tí',
+        'ok',
+        'ai chơi ko'
+      ];
       const msg = msgs[Math.floor(Math.random() * msgs.length)];
       client.write('chat', { message: msg });
-    }, 60000 + Math.random() * 30000); // 60-90s
-
-    // Anti AFK: nhảy nhẹ
-    setInterval(() => {
-      client.write('entity_action', {
-        entityId: client.entityId,
-        actionId: 1, // jump
-        jumpBoost: 1
-      });
-    }, 15000);
+    }, 90000 + Math.random() * 60000); // 90–150s
   });
 
   client.on('kicked', (reason) => {
@@ -60,7 +78,7 @@ function createBot() {
 
 function reconnect() {
   setTimeout(createBot, delay);
-  delay = Math.min(delay + 3000, 60000); // tăng delay để tránh spam
+  delay = Math.min(delay + 3000, 60000);
 }
 
 createBot();
