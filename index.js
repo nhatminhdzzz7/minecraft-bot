@@ -21,15 +21,25 @@ function createBot() {
 
   client.on('login', () => {
     console.log('✅ Đã vào server');
-    // vẫy tay
+ 
+
+// vẫy tay mỗi 30s
 setInterval(() => {
-  client.write('arm_animation', { hand: 0 });
+  try {
+    client.write('arm_animation', { hand: 0 });
+    console.log('👋 vẫy tay');
+  } catch {}
 }, 30000);
 
-// chat nhẹ
+// chat mỗi 60s
 setInterval(() => {
-  client.write('chat', { message: '.' });
-}, 120000);
+  try {
+    const msgs = ['.', 'hi', 'ok', 'lag'];
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    client.write('chat', { message: msg });
+    console.log('💬 chat:', msg);
+  } catch {}
+}, 60000);
 
     // chỉ chat rất ít (tránh bị detect)
     setInterval(() => {
