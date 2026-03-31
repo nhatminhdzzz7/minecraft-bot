@@ -9,7 +9,7 @@ const config = {
   host: 'aechat.aternos.me',
   port: 37480,
   username: '24/7',
-  version: '1.21.11',
+  version: '1.21.4',
 };
 
 function createBot() {
