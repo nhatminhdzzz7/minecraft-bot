@@ -1,56 +1,66 @@
 const mc = require('minecraft-protocol');
 const http = require('http');
 
-// giữ Railway sống
+const PORT = process.env.PORT || 8080;
+
+// Web server giữ Railway sống
 http.createServer((req, res) => {
-  res.end('Bot running');
-}).listen(process.env.PORT || 8080);
+  res.end('Bot is running!');
+}).listen(PORT);
 
 let delay = 5000;
 
 function createBot() {
-  console.log('🚀 Đang kết nối...');
+  console.log('🚀 Đang tạo bot...');
 
   const client = mc.createClient({
-    host: 'aechat.aternos.me', // đổi IP nếu cần
-    port: 37480,
-    username: 'TenBot',
+    host: 'aechat.aternos.me', // đổi nếu cần
+    port: 25565,
+    username: 'TenBot_' + Math.floor(Math.random() * 9999),
     version: false,
     auth: 'offline'
   });
 
   client.on('login', () => {
-    console.log('✅ Đã vào server');
- 
+    console.log('✅ Bot đã vào server!');
 
-// vẫy tay mỗi 30s
-setInterval(() => {
-  try {
-    client.write('arm_animation', { hand: 0 });
-    console.log('👋 vẫy tay');
-  } catch {}
-}, 30000);
+    // Delay để tránh anti-bot
+   
 
-// chat mỗi 60s
-setInterval(() => {
-  try {
-    const msgs = ['.', 'hi', 'ok', 'lag'];
-    const msg = msgs[Math.floor(Math.random() * msgs.length)];
-    client.write('chat', { message: msg });
-    console.log('💬 chat:', msg);
-  } catch {}
-}, 60000);
+  setTimeout(() => {
+    try {
+      const actions = ['swing', 'chat', 'nothing'];
+      const action = actions[Math.floor(Math.random() * actions.length)];
 
-    // chỉ chat rất ít (tránh bị detect)
+      if (action === 'swing') {
+        client.write('arm_animation', { hand: 0 });
+        console.log('👋 vẫy tay');
+      }
+
+      if (action === 'chat') {
+        const msgs = ['hi', 'alo', 'nam', 'minhdz', 't can ca server'];
+        const msg = msgs[Math.floor(Math.random() * msgs.length)];
+        client.write('chat', { message: msg });
+        console.log('💬 chat:', msg);
+      }
+
+      // có lúc không làm gì → giống người thật
+    } catch {}
+
+    randomAction(client); // loop tiếp
+  }, delay);
+}
+
+    // Ping nhẹ để giữ kết nối (an toàn hơn movement)
     setInterval(() => {
       try {
-        client.write('chat', { message: 'hi' });
+        client.write('keep_alive', { keepAliveId: Date.now() });
       } catch {}
-    }, 180000); // 3 phút
+    }, 20000);
   });
 
   client.on('kicked', (reason) => {
-    console.log('🚫 Bị kick:', reason);
+    console.log('⚠️ Bị kick:', reason);
     reconnect();
   });
 
@@ -60,13 +70,13 @@ setInterval(() => {
   });
 
   client.on('end', () => {
-    console.log('🔌 Mất kết nối');
+    console.log('🔌 Mất kết nối...');
     reconnect();
   });
 }
 
 function reconnect() {
-  console.log('⏳ Reconnect sau', delay / 1000, 'giây...');
+  console.log('⏳ Đang reconnect sau', delay / 1000, 'giây...');
   setTimeout(createBot, delay);
   delay = Math.min(delay + 3000, 60000);
 }
