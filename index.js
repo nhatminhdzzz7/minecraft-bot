@@ -26,15 +26,14 @@ function createBot() {
 
   let client;
   try {
-    const client = mc.createClient({
-  host: 'aechat.aternos.me',
-  port: 37480,
-  username: username,
-  version: '1.21.11',
-  auth: 'offline',
-  keepAlive: false, // tắt keepAlive mặc định để tự xử lý
-  checkTimeoutInterval: 60000,
-});
+    client = mc.createClient({
+      host: 'aechat.aternos.me',
+      port: 37480,
+      username: username,
+      version: '1.21.11',
+      auth: 'offline',
+      keepAlive: false,
+      checkTimeoutInterval: 60000,
     });
   } catch (e) {
     console.log('❌ Không tạo được bot:', e.message);
@@ -45,31 +44,27 @@ function createBot() {
 
   let pos = { x: 0, y: 64, z: 0 };
   let started = false;
-  let teleportId = 0;
 
-  // Keep alive - cực quan trọng
- client.on('keep_alive', (packet) => {
-  try {
-    client.write('keep_alive', { keepAliveId: packet.keepAliveId });
-    console.log('💓 Keep alive:', packet.keepAliveId);
-  } catch (e) {
-    console.log('⚠️ Keep alive lỗi:', e.message);
-  }
-});
-
-  client.on('login', () => {
-    console.log(`✅ Đã vào server với tên: ${username}`);
+  // Tự xử lý keep_alive
+  client.on('keep_alive', (packet) => {
+    try {
+      client.write('keep_alive', { keepAliveId: packet.keepAliveId });
+      console.log('💓 Keep alive OK');
+    } catch (e) {
+      console.log('⚠️ Keep alive lỗi:', e.message);
+    }
   });
 
-  // Xác nhận teleport
+  client.on('login', () => {
+    console.log(`✅ Đã vào server: ${username}`);
+  });
+
   client.on('position', (packet) => {
     try {
       pos.x = packet.x;
       pos.y = packet.y;
       pos.z = packet.z;
-      teleportId = packet.teleportId;
-      client.write('teleport_confirm', { teleportId: teleportId });
-      console.log(`📍 Vị trí: ${Math.round(pos.x)}, ${Math.round(pos.y)}, ${Math.round(pos.z)}`);
+      client.write('teleport_confirm', { teleportId: packet.teleportId });
       if (!started) {
         started = true;
         startHumanLike(client, pos);
@@ -77,11 +72,9 @@ function createBot() {
     } catch (e) {}
   });
 
-  // Xử lý chat server (login plugin)
   client.on('chat', (packet) => {
     try {
       const msg = packet.message || '';
-      console.log('💬 Server:', msg);
       if (msg.includes('/login') || msg.toLowerCase().includes('login')) {
         client.write('chat', { message: '/login 123456' });
       }
@@ -115,9 +108,9 @@ function createBot() {
 }
 
 function startHumanLike(client, pos) {
-  console.log('🎮 Bắt đầu chế độ human-like...');
+  console.log('🎮 Bắt đầu human-like...');
 
-  // Gửi vị trí liên tục mỗi 1 giây (quan trọng nhất)
+  // Gửi vị trí mỗi 1 giây
   const posInterval = setInterval(() => {
     try {
       client.write('position', {
@@ -131,9 +124,8 @@ function startHumanLike(client, pos) {
     }
   }, 1000);
 
-  // Hành động random
   function loop() {
-    const delay = 20000 + Math.random() * 40000; // 20s - 60s
+    const delay = 20000 + Math.random() * 40000;
     setTimeout(() => {
       try {
         const actions = ['move', 'look', 'swing', 'chat', 'idle', 'idle', 'idle'];
@@ -172,10 +164,6 @@ function startHumanLike(client, pos) {
           const msg = msgs[Math.floor(Math.random() * msgs.length)];
           client.write('chat', { message: msg });
           console.log('💬 Chat:', msg);
-        }
-
-        if (action === 'idle') {
-          console.log('😴 Nghỉ...');
         }
 
       } catch (e) {
