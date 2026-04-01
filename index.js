@@ -26,14 +26,15 @@ function createBot() {
 
   let client;
   try {
-    client = mc.createClient({
-      host: 'aechat.aternos.me',
-      port: 37480,
-      username: username,
-      version: '1.21.11',
-      auth: 'offline',
-      keepAlive: true,
-      checkTimeoutInterval: 30000,
+    const client = mc.createClient({
+  host: 'aechat.aternos.me',
+  port: 37480,
+  username: username,
+  version: '1.21.11',
+  auth: 'offline',
+  keepAlive: false, // tắt keepAlive mặc định để tự xử lý
+  checkTimeoutInterval: 60000,
+});
     });
   } catch (e) {
     console.log('❌ Không tạo được bot:', e.message);
@@ -47,11 +48,14 @@ function createBot() {
   let teleportId = 0;
 
   // Keep alive - cực quan trọng
-  client.on('keep_alive', (packet) => {
-    try {
-      client.write('keep_alive', { keepAliveId: packet.keepAliveId });
-    } catch (e) {}
-  });
+ client.on('keep_alive', (packet) => {
+  try {
+    client.write('keep_alive', { keepAliveId: packet.keepAliveId });
+    console.log('💓 Keep alive:', packet.keepAliveId);
+  } catch (e) {
+    console.log('⚠️ Keep alive lỗi:', e.message);
+  }
+});
 
   client.on('login', () => {
     console.log(`✅ Đã vào server với tên: ${username}`);
